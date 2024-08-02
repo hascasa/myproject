@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block title %}Courses{% endblock %}
+
+{% block content %}
+<style>
+    .btn-uniform {
+        width: 140px;
+        height: 60px;
+    }
+    .modal-dialog {
+        max-width: 70%;
+    }
+  
+</style>
+
+<div class="container mt-5">
+    {% if perms.eLearningApp.can_create_course %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Teacher Course Page</h2>
+        <button type="button" class="btn btn-primary btn-uniform" data-bs-toggle="modal" data-bs-target="#createCourseModal">Create New Course</button>
+    </div>
+
+    <!-- Create Course Modal -->
+    <div class="modal fade" id="createCourseModal" tabindex="-1" aria-labelledby="createCourseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-light text-dark">
+                    <h5 class="modal-title" id="createCourseModalLabel">Create New Course</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="{% url 'courses' %}">
+                    <div class="modal-body">
+                        {% csrf_token %}
+                        {% for field in course_form %}
+                        <div class="mb-3">
+                            {{ field.label_tag }}
+                            {% render_field field class="form-control" placeholder=field.label %}
+                            {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-uniform" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary btn-uniform">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teacher Courses -->
+    {% for course in teacher_courses %}
+    <a href="{% url 'course_detail' course.id %}" class="text-decoration-none text-dark">
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-light">
+                <h4 class="mb-0 font-weight-bold">{{ course.title }}</h4>
+            </div>
+            <div class="card-body">
+                <p>{{ course.description }}</p>
+                {% if course.enrollments.exists %}
+                <p class="text-muted">{{ course.enrollments.count }} student(s) enrolled.</p>
+                {% else %}
+                <p class="text-muted">No students enrolled.</p>
+                {% endif %}
+            </div>
+        </div>
+    </a>
+    {% empty %}
+    <p>No course has been created</p>
+    {% endfor %}
+
+    {% else %}
+    <h2>Student Course Page</h2>
+    <div class="row">
+        <!-- Enrolled Courses -->
+        <div class="col-md-6">
+            <h3>Enrolled Courses</h3>
+            {% for course in enrolled_courses %}
+            <a href="{% url 'course_detail' course.id %}" class="text-decoration-none text-dark">
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0 font-weight-bold">{{ course.title }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text"><strong>Description:</strong> {{ course.description }}</p>
+                        <p class="card-text"><strong>Teacher:</strong> {{ course.instructor.full_name }}</p>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <p>You are not enrolled in any courses.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Available Courses -->
+        <div class="col-md-6">
+            <h3>Available Courses</h3>
+            {% for course in available_courses %}
+            <a href="{% url 'course_detail' course.id %}" class="text-decoration-none text-dark">
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0 font-weight-bold">{{ course.title }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text"><strong>Description:</strong> {{ course.description }}</p>
+                        <p class="card-text"><strong>Teacher:</strong> {{ course.instructor.full_name }}</p>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <p>No available courses to enroll in.</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

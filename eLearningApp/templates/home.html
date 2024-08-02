@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{{ home.username }}'s Home{% endblock %}
+
+{% block content %}
+
+
+<style>
+ 
+    .modal-dialog {
+        max-width: 70%;
+       
+    }
+  
+</style>
+<div class="container mt-5">
+    <!-- User Profile Information -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-light text-dark">
+            <h2>User Profile</h2>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center mb-4">
+                <div class="col-auto">
+                    <img src="{{ home.photo.url }}" class="rounded-circle shadow-lg" alt="{{ home.username }}" data-toggle="tooltip" title="{{ home.username }}" style="width: 150px; height: 150px; object-fit: cover;">
+                </div>
+                <div class="col">
+                    <h3>{{ home.full_name }}</h3>
+                    <p><strong>Username:</strong> {{ home.username }}</p>
+                    <p><strong>Role:</strong> {{ home.get_role_display }}</p>
+                    <p><strong>Email:</strong> {{ home.email }}</p>
+                </div>
+                <div class="col-auto">
+                    {% if update_profile_form %}
+                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#updateProfileModal">Update Profile</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Updating Profile -->
+    {% if update_profile_form %}
+    <div class="modal fade" id="updateProfileModal" tabindex="-1" aria-labelledby="updateProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-light text-dark">
+                    <h5 class="modal-title" id="updateProfileModalLabel">Update Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" enctype="multipart/form-data" action="{% url 'home' home.username %}">
+                    <div class="modal-body">
+                        {% csrf_token %}
+                        {% for field in update_profile_form %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {% render_field field class="form-control" %}
+                            {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                            <div class="invalid-feedback" style="display: block;">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" name="update_profile" class="btn btn-light">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Created Courses Section -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-light text-dark">
+            <h2>Courses</h2>
+        </div>
+        <div class="card-body mb-4">
+            <div id="createdCoursesAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingCreatedCourses">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCreatedCourses" aria-expanded="true" aria-controls="collapseCreatedCourses">
+                            {{ perms.eLearningApp.can_create_course|yesno:"Created Courses,Enrolled in Courses" }}
+                        </button>
+                    </h2>
+                    <div id="collapseCreatedCourses" class="accordion-collapse collapse" aria-labelledby="headingCreatedCourses" data-bs-parent="#createdCoursesAccordion">
+                        <div class="accordion-body">
+                            <div class="list-group">
+                                {% for course in courses %}
+                                <a href="{% url 'course_detail' course.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">{{ course.title }}</h5>
+                                        <small class="text-muted">{{ course.created_at|date:"N j, Y" }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ course.description }}</p>
+                                    <small class="text-muted"><strong>Instructor:</strong> {{ course.instructor.full_name }}</small>
+                                </a>
+                                {% empty %}
+                                <p class="text-muted">No courses found.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Updates Section -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-light text-dark">
+            <h2>Status Updates</h2>
+        </div>
+        <div class="card-body">
+            <div id="statusUpdatesAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingStatusUpdates">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStatusUpdates" aria-expanded="true" aria-controls="collapseStatusUpdates">
+                            Latest Status Updates
+                        </button>
+                    </h2>
+                    <div id="collapseStatusUpdates" class="accordion-collapse collapse" aria-labelledby="headingStatusUpdates" data-bs-parent="#statusUpdatesAccordion">
+                        <div class="accordion-body">
+                            {% for status in status_updates %}
+                            <div class="border rounded p-3 mb-3 shadow-sm d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ status.user.username }}</strong>: {{ status.text }}
+                                    <small class="text-muted">Posted on {{ status.created_at|date:"N j, Y, P" }}</small>
+                                </div>
+                                {% if request.user == status.user %}
+                                <form action="{% url 'delete_status' status.id %}" method="post" style="margin-bottom: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                            {% empty %}
+                            <p class="text-muted">No status updates.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Form -->
+    {% if status_form %}
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-light text-dark">
+            <h2>Leave a Status Update</h2>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {% for field in status_form %}
+                <div class="form-group mb-3">
+                    {{ field.label_tag }}
+                    {% render_field field class="form-control datepicker" placeholder=field.label %}
+                    {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <div class="invalid-feedback" style="display: block;">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                <button type="submit" name="leave_status" class="btn btn-success">Post</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if update_profile_form.errors %}
+<script>
+    $(document).ready(function() {
+        var updateProfileModal = new bootstrap.Modal(document.getElementById('updateProfileModal'));
+        updateProfileModal.show();
+    });
+</script>
+{% endif %}
+
+<script>
+    $(document).ready(function() {
+        $(".datepicker").datepicker({
+            dateFormat: "yy-mm-dd"
+        });
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}

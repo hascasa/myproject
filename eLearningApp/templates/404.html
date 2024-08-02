@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found{% endblock %}
+
+{% block content %}
+<div class="text-center mt-5">
+    <h1 class="display-1">404</h1>
+    <p class="fs-4"><span class="text-muted">Oops! Looks like you're lost.</span></p>
+    {% if request.user.is_authenticated %}
+    <p>Hi {{ request.user.username }}, it seems like the page you're looking for doesn't exist. Maybe try heading back to the <a href="{% url 'home' username=user.username %}">home page</a>?</p>
+    {% else %}
+    <p>The page you're looking for doesn't exist. You might want to <a href="{% url 'login' %}">log in</a> or check the URL again.</p>
+    {% endif %}
+</div>
+{% endblock %}
