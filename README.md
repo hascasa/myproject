@@ -6,9 +6,7 @@ redis-server
 celery -A eLearning worker --loglevel=info
 
 
-## Run the ASGI Server ##
 
-uvicorn eLearning.asgi:application
 
 
 
@@ -47,6 +45,8 @@ This is a sample eLearning application built using Django. It includes features 
 
 4. Apply the migrations:
     ```bash
+    python manage.py makemigrations
+    and
     python manage.py migrate
     ```
 
@@ -57,6 +57,8 @@ This is a sample eLearning application built using Django. It includes features 
 
 6. Run the development server:
     ```bash
+    uvicorn eLearning.asgi:application
+    or
     python manage.py runserver
     ```
 
