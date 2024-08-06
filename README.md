@@ -30,8 +30,8 @@ This is a sample eLearning application built using Django. It includes features 
 
 1. Clone the repository:
     ```bash
-    git clone <repository-url>
-    cd eLearningDjangoApp
+    git clone https://github.com/hascasa/myproject.git
+    cd myproject
     ```
 
 2. Create a virtual environment and activate it:
